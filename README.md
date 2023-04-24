@@ -1,4 +1,4 @@
-## Stock-Bot
+## Trading-Bot
 
 ```mermaid
 flowchart LR

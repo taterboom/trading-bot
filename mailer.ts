@@ -10,7 +10,7 @@ export async function mailer(title: string, body: string) {
   })
 
   await transporter.sendMail({
-    from: `"stock-bot" <${process.env.SENDER}>`, // sender address
+    from: `"Trading-Bot" <${process.env.SENDER}>`, // sender address
     to: process.env.RECEIVER, // list of receivers
     subject: title, // Subject line
     text: body,
