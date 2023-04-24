@@ -2,11 +2,27 @@ import Axios from "axios"
 import { decode } from "iconv-lite"
 import { calcFixedPriceNumber, formatNumber, randHeader } from "./utils"
 
-type LeekTreeItem = any
+type LeekTreeItem = {
+  code: string
+  name: string
+  price: number
+  high: number
+  low: number
+  open: number
+}
 
 const globalState: Record<string, any> = {}
 
-export async function getStockData(codes: Array<string>): Promise<Array<LeekTreeItem>> {
+// throw error in 3 seconds
+const timeout = (ms = 4000): Promise<never> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      reject(new Error("timeout"))
+    }, ms)
+  })
+}
+
+async function _getStockData(codes: Array<string>): Promise<Array<LeekTreeItem>> {
   if ((codes && codes.length === 0) || !codes) {
     return []
   }
@@ -40,7 +56,7 @@ export async function getStockData(codes: Array<string>): Promise<Array<LeekTree
         return []
       }
       for (const code of codes) {
-        stockList = stockList.concat(await getStockData(new Array(code)))
+        stockList = stockList.concat(await _getStockData(new Array(code)))
       }
     } else {
       const splitData = resp.data.split(";\n")
@@ -276,5 +292,10 @@ export async function getStockData(codes: Array<string>): Promise<Array<LeekTree
   globalState.cnfStockCount = cnfStockCount
   globalState.hfStockCount = hfStockCount
   globalState.noDataStockCount = noDataStockCount
+  console.log("---")
+  console.dir(stockList, { depth: 2 })
   return stockList
 }
+
+export const getStockData: typeof _getStockData = async (...args) =>
+  Promise.race([_getStockData(...args), timeout()])
