@@ -19,6 +19,6 @@ export function notify(strategy: StrategyConfig, kItems: KItem[]) {
   const body = `当前价格: ${kItems[kItems.length - 1][0]} 
 options: ${strategy.options} 
 level: ${strategy.level} 
-extra: ${strategy.extra} `
+extra: ${strategy.extra || ""}`
   mailer(title, body)
 }

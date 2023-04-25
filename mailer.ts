@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer"
+import { log } from "./log"
 
 export async function mailer(title: string, body: string) {
   const transporter = nodemailer.createTransport({
@@ -15,5 +16,5 @@ export async function mailer(title: string, body: string) {
     subject: title, // Subject line
     text: body,
   })
-  console.log("[email sent]")
+  log("email", title)
 }

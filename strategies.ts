@@ -34,13 +34,13 @@ export type StrategyConfig = {
 export async function getStrategies() {
   const results = await findItems()
   const items = results.map((item) => {
-    const { code, level, strategy, options } = item.properties
+    const { code, level, strategy, options, extra } = item.properties
     return {
       code: code.title[0].plain_text,
       level: level.select.name,
       strategy: strategy.select.name,
       options: options.rich_text[0].plain_text.split(",").map((item: string) => Number(item)),
-      extra: options.rich_text[0].plain_text,
+      extra: extra?.rich_text?.[0]?.plain_text,
     }
   })
   return items

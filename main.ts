@@ -2,8 +2,9 @@ import dayjs, { Dayjs } from "dayjs"
 import isBetween from "dayjs/plugin/isBetween"
 import * as dotenv from "dotenv"
 import { startCron } from "./cron"
+import { log } from "./log"
 import { getStrategies } from "./strategies"
-import { worker } from "./worker"
+import worker from "./worker"
 
 dotenv.config()
 
@@ -13,27 +14,27 @@ const BASE_INTERVAL = 60 * 1000
 
 async function run() {
   const now = dayjs()
-  console.log("[run] ", now.format())
+  log("run")
   const start1 = now.startOf("minute").set("hour", 9).set("minute", 30)
   const end1 = now.startOf("minute").set("hour", 11).set("minute", 30)
   const start2 = now.startOf("minute").set("hour", 13).set("minute", 0)
-  const end2 = now.startOf("minute").set("hour", 17).set("minute", 0)
+  const end2 = now.startOf("minute").set("hour", 15).set("minute", 0)
 
   const inTradingTime = (time: Dayjs) =>
     time.isBetween(start1, end1) || time.isBetween(start2, end2)
 
   if (inTradingTime(now)) {
-    console.log("[running] ")
+    log("running")
     const strategies = await getStrategies()
-    worker(now, strategies)
+    worker.init()
 
     const id = setInterval(() => {
       const now = dayjs()
       if (inTradingTime(now)) {
-        worker(now, strategies)
+        worker.run(now, strategies)
       } else {
-        console.log("[stop] ", now.format())
-        window.clearInterval(id)
+        log("stop")
+        clearInterval(id)
       }
     }, BASE_INTERVAL)
   }

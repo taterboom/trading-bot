@@ -21,7 +21,9 @@ function sell1(kItems: KItem[], options: [number, number]) {
   const prevIndex = Math.max(0, kItems.length - 1 - turningPoint)
   const prevKItems = kItems.slice(prevIndex, kItems.length - 1)
   return (
-    price >= lastBiHigh && prevKItems.length > 0 && prevKItems.every((item) => price <= item[0])
+    price >= lastBiHigh &&
+    prevKItems.length >= turningPoint &&
+    prevKItems.every((item) => price <= item[0])
   )
 }
 function sell2(kItems: KItem[], options: [number, number]) {
@@ -31,7 +33,9 @@ function sell2(kItems: KItem[], options: [number, number]) {
   const prevIndex = Math.max(0, kItems.length - 1 - turningPoint)
   const prevKItems = kItems.slice(prevIndex, kItems.length - 1)
   return (
-    price <= lastBiHigh && prevKItems.length > 0 && prevKItems.every((item) => price <= item[0])
+    price <= lastBiHigh &&
+    prevKItems.length >= turningPoint &&
+    prevKItems.every((item) => price <= item[0])
   )
 }
 function buy1(kItems: KItem[], options: [number, number]) {
@@ -40,7 +44,11 @@ function buy1(kItems: KItem[], options: [number, number]) {
   const price = kItems[kItems.length - 1][0]
   const prevIndex = Math.max(0, kItems.length - 1 - turningPoint)
   const prevKItems = kItems.slice(prevIndex, kItems.length - 1)
-  return price <= lastBiLow && prevKItems.length > 0 && prevKItems.every((item) => price >= item[0])
+  return (
+    price <= lastBiLow &&
+    prevKItems.length >= turningPoint &&
+    prevKItems.every((item) => price >= item[0])
+  )
 }
 function buy2(kItems: KItem[], options: [number, number]) {
   if (kItems.length === 0) return false
@@ -48,7 +56,11 @@ function buy2(kItems: KItem[], options: [number, number]) {
   const price = kItems[kItems.length - 1][0]
   const prevIndex = Math.max(0, kItems.length - 1 - turningPoint)
   const prevKItems = kItems.slice(prevIndex, kItems.length - 1)
-  return price >= lastBiLow && prevKItems.length > 0 && prevKItems.every((item) => price >= item[0])
+  return (
+    price >= lastBiLow &&
+    prevKItems.length >= turningPoint &&
+    prevKItems.every((item) => price >= item[0])
+  )
 }
 export const Strategy: Record<string, (kItems: KItem[], options: any) => boolean> = {
   sell3,

@@ -292,8 +292,7 @@ async function _getStockData(codes: Array<string>): Promise<Array<LeekTreeItem>>
   globalState.cnfStockCount = cnfStockCount
   globalState.hfStockCount = hfStockCount
   globalState.noDataStockCount = noDataStockCount
-  console.log("---")
-  console.dir(stockList, { depth: 2 })
+
   return stockList
 }
 

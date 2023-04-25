@@ -1,5 +1,7 @@
 import { Dayjs } from "dayjs"
+import fs from "node:fs/promises"
 import { Strategy } from "./Strategy"
+import { log } from "./log"
 import { notify } from "./notify"
 import { getStockData } from "./sina/service"
 import { StrategyConfig } from "./strategies"
@@ -55,14 +57,16 @@ async function setDatabase(time: number, codes: string[]) {
       30: k30Items,
     }
   })
+  setImmediate(saveDb)
 }
 
-const LEVELS = [1, 5, 30] as const
+const LEVELS = ["1", "5", "30"] as const
 // one tick per minute
 function execute(time: number, strategies: StrategyConfig[]) {
   LEVELS.forEach((level) => {
-    if (time % level === 0) {
-      strategies.forEach((item) => {
+    if (time % +level === 0) {
+      const currentLevelStrategies = strategies.filter((item) => item.level === level)
+      currentLevelStrategies.forEach((item) => {
         const { code, strategy, options } = item
         const kItems = db[code][level]
         const ok = Strategy[strategy](kItems, options)
@@ -74,9 +78,38 @@ function execute(time: number, strategies: StrategyConfig[]) {
   })
 }
 
-export async function worker(now: Dayjs, strategies: StrategyConfig[]) {
+async function runWorker(now: Dayjs, strategies: StrategyConfig[]) {
   const codes = [...new Set(strategies.map((item) => item.code))]
   let time = now.minute()
   await setDatabase(time, codes)
   execute(time, strategies)
 }
+
+function saveDb() {
+  const toBeSaved = Object.entries(db).reduce((acc, [key, value]) => {
+    acc[key] = {
+      1: value[1].slice(Math.max(0, value[1].length - 240), value[1].length),
+      5: value[5].slice(Math.max(0, value[5].length - 48), value[5].length),
+      30: value[30].slice(Math.max(0, value[30].length - 8), value[30].length),
+    }
+    return acc
+  }, {} as Record<string, { 1: KItem[]; 5: KItem[]; 30: KItem[] }>)
+  fs.writeFile("./log/db.json", JSON.stringify(toBeSaved), "utf8")
+}
+
+async function initWorker() {
+  try {
+    const dbStr = await fs.readFile("./log/db.json", "utf8")
+    log("init", "db.json found")
+    Object.assign(db, JSON.parse(dbStr))
+  } catch (err) {
+    log("init", "db.json not found")
+  }
+}
+
+const worker = {
+  init: initWorker,
+  run: runWorker,
+}
+
+export default worker
