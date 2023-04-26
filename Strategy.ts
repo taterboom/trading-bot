@@ -17,49 +17,49 @@ function sell3(kItems: KItem[], options: [number]) {
 function sell1(kItems: KItem[], options: [number, number]) {
   if (kItems.length === 0) return false
   const [lastBiHigh, turningPoint = TURNNG_POINT] = options
-  const price = kItems[kItems.length - 1][0]
+  const high = kItems[kItems.length - 1][1]
   const prevIndex = Math.max(0, kItems.length - 1 - turningPoint)
   const prevKItems = kItems.slice(prevIndex, kItems.length - 1)
   return (
-    price >= lastBiHigh &&
+    high >= lastBiHigh &&
     prevKItems.length >= turningPoint &&
-    prevKItems.every((item) => price <= item[0])
+    prevKItems.every((item) => high <= item[1])
   )
 }
 function sell2(kItems: KItem[], options: [number, number]) {
   if (kItems.length === 0) return false
   const [lastBiHigh, turningPoint = TURNNG_POINT] = options
-  const price = kItems[kItems.length - 1][0]
+  const high = kItems[kItems.length - 1][1]
   const prevIndex = Math.max(0, kItems.length - 1 - turningPoint)
   const prevKItems = kItems.slice(prevIndex, kItems.length - 1)
   return (
-    price <= lastBiHigh &&
+    high <= lastBiHigh &&
     prevKItems.length >= turningPoint &&
-    prevKItems.every((item) => price <= item[0])
+    prevKItems.every((item) => high <= item[1])
   )
 }
 function buy1(kItems: KItem[], options: [number, number]) {
   if (kItems.length === 0) return false
   const [lastBiLow, turningPoint = TURNNG_POINT] = options
-  const price = kItems[kItems.length - 1][0]
+  const low = kItems[kItems.length - 1][2]
   const prevIndex = Math.max(0, kItems.length - 1 - turningPoint)
   const prevKItems = kItems.slice(prevIndex, kItems.length - 1)
   return (
-    price <= lastBiLow &&
+    low <= lastBiLow &&
     prevKItems.length >= turningPoint &&
-    prevKItems.every((item) => price >= item[0])
+    prevKItems.every((item) => low >= item[2])
   )
 }
 function buy2(kItems: KItem[], options: [number, number]) {
   if (kItems.length === 0) return false
   const [lastBiLow, turningPoint = TURNNG_POINT] = options
-  const price = kItems[kItems.length - 1][0]
+  const low = kItems[kItems.length - 1][2]
   const prevIndex = Math.max(0, kItems.length - 1 - turningPoint)
   const prevKItems = kItems.slice(prevIndex, kItems.length - 1)
   return (
-    price >= lastBiLow &&
+    low >= lastBiLow &&
     prevKItems.length >= turningPoint &&
-    prevKItems.every((item) => price >= item[0])
+    prevKItems.every((item) => low >= item[2])
   )
 }
 export const Strategy: Record<string, (kItems: KItem[], options: any) => boolean> = {

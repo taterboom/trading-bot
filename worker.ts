@@ -25,39 +25,45 @@ export type KItem = [number, number, number]
 const db: Record<string, { 1: KItem[]; 5: KItem[]; 30: KItem[] }> = {}
 
 async function setDatabase(time: number, codes: string[]) {
-  const data = await getStockData(codes)
-  data.forEach((result, index) => {
-    const currentData = db[codes[index]] || { 1: [], 5: [], 30: [] }
-    const { price } = result
-    const kItem: KItem = [price, 0, 0]
-    const k1Items = currentData[1].concat([kItem])
-    const k5Items = currentData[5]
-    const k30Items = currentData[30]
-    if (time % 5 === 0) {
-      const last5KItems = k1Items.slice(Math.max(0, k1Items.length - 5), k1Items.length)
-      const k5Item: KItem = [
-        price,
-        Math.max(...last5KItems.map((item) => item[0])),
-        Math.min(...last5KItems.map((item) => item[0])),
-      ]
-      k5Items.push(k5Item)
-    }
-    if (time % 30 === 0) {
-      const last30KItems = k1Items.slice(Math.max(0, k1Items.length - 30), k1Items.length)
-      const k30Item: KItem = [
-        price,
-        Math.max(...last30KItems.map((item) => item[0])),
-        Math.min(...last30KItems.map((item) => item[0])),
-      ]
-      k30Items.push(k30Item)
-    }
-    db[codes[index]] = {
-      1: k1Items,
-      5: k5Items,
-      30: k30Items,
-    }
-  })
-  setImmediate(saveDb)
+  try {
+    const data = await getStockData(codes)
+    data.forEach((result, index) => {
+      const currentData = db[codes[index]] || { 1: [], 5: [], 30: [] }
+      const { price: priceStr } = result
+      const price = +priceStr
+      const kItem: KItem = [price, 0, 0]
+      const k1Items = currentData[1].concat([kItem])
+      const k5Items = currentData[5]
+      const k30Items = currentData[30]
+      if (time % 5 === 0) {
+        const last5KItems = k1Items.slice(Math.max(0, k1Items.length - 5), k1Items.length)
+        const k5Item: KItem = [
+          price,
+          Math.max(...last5KItems.map((item) => item[0])),
+          Math.min(...last5KItems.map((item) => item[0])),
+        ]
+        k5Items.push(k5Item)
+      }
+      if (time % 30 === 0) {
+        const last30KItems = k1Items.slice(Math.max(0, k1Items.length - 30), k1Items.length)
+        const k30Item: KItem = [
+          price,
+          Math.max(...last30KItems.map((item) => item[0])),
+          Math.min(...last30KItems.map((item) => item[0])),
+        ]
+        k30Items.push(k30Item)
+      }
+      db[codes[index]] = {
+        1: k1Items,
+        5: k5Items,
+        30: k30Items,
+      }
+    })
+    setImmediate(saveDb)
+  } catch (err) {
+    // @ts-ignore
+    log("🔴 error", err?.message)
+  }
 }
 
 const LEVELS = ["1", "5", "30"] as const

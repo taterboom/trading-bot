@@ -13,12 +13,33 @@ type LeekTreeItem = {
 
 const globalState: Record<string, any> = {}
 
-// throw error in 3 seconds
-const timeout = (ms = 4000): Promise<never> => {
+// throw error in 10 seconds
+const timeout = (ms = 10000): Promise<never> => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       reject(new Error("timeout"))
     }, ms)
+  })
+}
+
+// retry when failed
+const retry = <K, T extends () => Promise<K>>(fn: T, times = 3, delay = 1000) => {
+  return new Promise<K>((resolve, reject) => {
+    const attempt = () => {
+      fn()
+        .then(resolve)
+        .catch((error: Error) => {
+          times--
+          if (times === 0) {
+            reject(error)
+          } else {
+            setTimeout(() => {
+              attempt()
+            }, delay)
+          }
+        })
+    }
+    attempt()
   })
 }
 
@@ -296,5 +317,5 @@ async function _getStockData(codes: Array<string>): Promise<Array<LeekTreeItem>>
   return stockList
 }
 
-export const getStockData: typeof _getStockData = async (...args) =>
-  Promise.race([_getStockData(...args), timeout()])
+export const getStockData: typeof _getStockData = (...args) =>
+  retry(() => Promise.race([_getStockData(...args), timeout()]))
