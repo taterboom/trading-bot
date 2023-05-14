@@ -45,6 +45,8 @@ export function monitor(data: Database) {
     })
     .filter(Boolean)
 
+  if (warningInfo.length === 0) return
+
   const title = `🔴 ${warningInfo.map((item) => item[0]).join("、")} 异常下跌`
   const body = warningInfo
     .map(

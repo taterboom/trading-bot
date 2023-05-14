@@ -1,4 +1,5 @@
 import { Client } from "@notionhq/client"
+import { log } from "./log"
 
 export async function findItems(): Promise<any[]> {
   const notion = new Client({ auth: process.env.NOTION_KEY })
@@ -19,6 +20,7 @@ export async function findItems(): Promise<any[]> {
     })
     return response.results
   } catch (error: any) {
+    log("🔴 error", error.body)
     throw error.body
   }
 }
