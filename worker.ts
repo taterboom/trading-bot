@@ -2,6 +2,7 @@ import { Dayjs } from "dayjs"
 import fs from "node:fs/promises"
 import { Strategy } from "./Strategy"
 import { log } from "./log"
+import { monitor } from "./monitor"
 import { notify } from "./notify"
 import { getStockData } from "./sina/service"
 import { StrategyConfig } from "./strategies"
@@ -21,10 +22,11 @@ export type KItem = [number, number, number]
  *  2.5. 买2, lastBiLow
  */
 
-// TODO persist
-const db: Record<string, { 1: KItem[]; 5: KItem[]; 30: KItem[] }> = {}
+type Code = string
+export type Database = Record<Code, { 1: KItem[]; 5: KItem[]; 30: KItem[] }>
+const db: Database = {}
 
-async function setDatabase(time: number, codes: string[]) {
+async function setDatabase(time: number, codes: Code[]) {
   try {
     const data = await getStockData(codes)
     data.forEach((result, index) => {
@@ -89,6 +91,7 @@ async function runWorker(now: Dayjs, strategies: StrategyConfig[]) {
   let time = now.minute()
   await setDatabase(time, codes)
   execute(time, strategies)
+  monitor(db)
 }
 
 function saveDb() {
