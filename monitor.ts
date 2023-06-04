@@ -1,3 +1,4 @@
+import dayjs from "dayjs"
 import { Database, KItem } from "./worker"
 
 function calDelta(kItems: KItem[]) {
@@ -8,54 +9,69 @@ function calDelta(kItems: KItem[]) {
     return 0
   }
 
-  return (currentItem[1] - preItem[2]) / preItem[2]
+  return (currentItem[2] - preItem[1]) / preItem[1]
 }
 
-type Warning = [1 | 5 | 30, number]
+function percent(num: number) {
+  return `${(num * 100).toFixed(2)}%`
+}
+
+type Warning = [1 | 5 | 30, number, KItem[]] // [分钟, 跌幅, 数据]
 
 // 异常下跌：
-// 1分钟内下降超过0.4%
-// 5分钟内跌幅超过0.7%
+// 1分钟内下降超过0.5%
+// 5分钟内跌幅超过0.8%
 // 30分钟跌幅超过1.3%
-function getWarinings(data: Database[string]) {
-  const minute1Change = calDelta(data[1])
-  const minute5Change = calDelta(data[5])
-  const minute30Change = calDelta(data[30])
+function getWarinings(time: number, data: Database[string]) {
   const warnings: Warning[] = []
-  if (minute1Change < -0.004) {
-    warnings.push([1, minute1Change])
+
+  const minute1Change = calDelta(data[1])
+  if (minute1Change < -0.005) {
+    warnings.push([1, minute1Change, data[1]])
   }
-  if (minute5Change < -0.007) {
-    warnings.push([5, minute5Change])
+
+  if (time % 5 === 0) {
+    const minute5Change = calDelta(data[5])
+    if (minute5Change < -0.008) {
+      warnings.push([5, minute5Change, data[5]])
+    }
   }
-  if (minute30Change < -0.013) {
-    warnings.push([30, minute30Change])
+
+  if (time % 30 === 0) {
+    const minute30Change = calDelta(data[30])
+    if (minute30Change < -0.013) {
+      warnings.push([30, minute30Change, data[30]])
+    }
   }
   return warnings
 }
 
-export function monitor(data: Database) {
-  const warningInfo: [string, Warning[]][] = Object.entries(data)
+// time: minute
+export function monitor(time: number, data: Database) {
+  const warningInfo: [string, number, Warning[]][] = Object.entries(data)
     .map(([code, info]) => {
-      const warnings = getWarinings(info)
+      const warnings = getWarinings(time, info)
       if (warnings.length === 0) {
         return undefined as never
       }
-      return [code, warnings] as [string, Warning[]]
+      return [code, info[1].at(-1)?.[0], warnings] as [string, number, Warning[]]
     })
     .filter(Boolean)
 
   if (warningInfo.length === 0) return
 
-  const title = `🔴 ${warningInfo.map((item) => item[0]).join("、")} 异常下跌`
+  const title = `${dayjs().format("YYYY-MM-DD HH:mm")} 🟡 ${warningInfo
+    .map((item) => item[0])
+    .join("、")} 异常下跌`
   const body = warningInfo
     .map(
-      (item) => `${item[0]} 
-    ${item[1].map((warning: Warning) => `${warning[0]}分钟跌幅${warning[1]}`).join("\n")}
-`
+      (item) =>
+        `|- ${item[0]} ${item[1]} ${item[2]
+          .map((warning: Warning) => `${warning[0]}分钟跌幅${percent(warning[1])}`)
+          .join(", ")}`
     )
-    .join("------")
+    .join("\n ")
 
-  console.log("!!!!", title, body)
+  console.log(title, "\n", body)
   // mailer(title, body)
 }

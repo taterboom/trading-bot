@@ -8,7 +8,10 @@ import { getStockData } from "./sina/service"
 import { StrategyConfig } from "./strategies"
 
 // [price, high, low]
-export type KItem = [number, number, number]
+type KItemPrice = number
+type KItemHigh = number
+type KItemLow = number
+export type KItem = [KItemPrice, KItemHigh, KItemLow]
 
 /**
  * 怎么使用
@@ -64,7 +67,7 @@ async function setDatabase(time: number, codes: Code[]) {
     setImmediate(saveDb)
   } catch (err) {
     // @ts-ignore
-    log("🔴 error", err?.message)
+    log("🚧 error", err?.message)
   }
 }
 
@@ -91,7 +94,7 @@ async function runWorker(now: Dayjs, strategies: StrategyConfig[]) {
   let time = now.minute()
   await setDatabase(time, codes)
   execute(time, strategies)
-  monitor(db)
+  monitor(time, db)
 }
 
 function saveDb() {

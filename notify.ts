@@ -15,7 +15,9 @@ export function notify(strategy: StrategyConfig, kItems: KItem[]) {
   }
   emailFlag.add(id)
 
-  const title = `🔴 ${strategy.code} ${strategy.strategy} 指标已达到!`
+  const flag = strategy.strategy.startsWith("sell") ? "🟢" : "🔴"
+
+  const title = `${flag} ${strategy.code} ${strategy.strategy} 指标已达到!`
   const body = `当前价格: ${kItems[kItems.length - 1][0]} 
 options: ${strategy.options} 
 level: ${strategy.level} 
