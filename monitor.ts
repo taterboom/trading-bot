@@ -1,4 +1,5 @@
 import dayjs from "dayjs"
+import { displayNotificationOnMac } from "./notify"
 import { Database, KItem } from "./worker"
 
 function calDelta(kItems: KItem[]) {
@@ -73,5 +74,5 @@ export function monitor(time: number, data: Database) {
     .join("\n ")
 
   console.log(title, "\n", body)
-  // mailer(title, body)
+  displayNotificationOnMac(title, body)
 }

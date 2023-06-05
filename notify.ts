@@ -1,4 +1,5 @@
 import dayjs from "dayjs"
+import { exec } from "node:child_process"
 import { mailer } from "./mailer"
 import { StrategyConfig } from "./strategies"
 import { KItem } from "./worker"
@@ -23,4 +24,9 @@ options: ${strategy.options}
 level: ${strategy.level} 
 extra: ${strategy.extra || ""}`
   mailer(title, body)
+  displayNotificationOnMac(title, body)
+}
+
+export function displayNotificationOnMac(title: string, body: string) {
+  exec(`osascript -e 'display notification "${body}" with title "${title}"'`)
 }
